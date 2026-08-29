@@ -8,12 +8,14 @@ import json
 class ViewerWindow:
 
     # Constructor
-    def __init__(self):
+    def __init__(self, databaseHandler):
 
         # Config
         self.app_config = {
             
         }
+
+        self.dbh = databaseHandler
 
     # Creates the database window
     def create_window(self):

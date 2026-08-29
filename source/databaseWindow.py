@@ -23,40 +23,6 @@ class DatabaseWindow:
     # Creates the database window
     def create_window(self):
 
-        # # Initializes database on startup
-        # def process_db_submission(sender, app_data, user_data):
-
-        #     input_text = user_data[0]
-        #     text = user_data[1]
-        #     reindex_button = user_data[2]
-
-        #     # Attempts to read any existing JSON files
-        #     db_path = dpg.get_value(input_text)
-        #     result1 = self.db_data.read_db_from_db_path(db_path)
-
-        #     # Success
-        #     if (result1 == 0):
-        #         dpg.set_value(text, "Database JSON file found. Loaded sucessfully.")
-        #         dpg.show_item(reindex_button)
-
-        #     # Read Failure
-        #     elif (result1 == 1):
-        #         dpg.set_value(text, "ERROR [2]: Archive JSON file exists, but failed to read.")
-        #         return False
-
-        #     # If a database JSON does not already exists, then indexes the database to create a new one
-        #     elif (result1 == 2):
-        #         result = self.db_data.db_index_audio(db_path)
-
-        #         if (result == 0):
-        #             self.db_data.save_db_to_json()
-        #             dpg.set_value(text, "Database Initialization Successful")
-        #             dpg.show_item(reindex_button)
-                  
-        #         elif (result == 1):
-        #             dpg.set_value(text, "ERROR [1]: Path does not exist.")
-
-
         # # Re-indexes database
         # def reindex_db(sender, app_data, user_data):
         #     text = user_data
@@ -97,10 +63,12 @@ class DatabaseWindow:
 
         # Unloads the UI for creating new databases
         def unload_db_creator_ui():
-
             unloaded_items = ["db_name_text", "db_name_input", "db_name_submit_button"]
             for item in unloaded_items:
-                dpg.delete_item(item)
+                try:
+                    dpg.delete_item(item)
+                except:
+                    pass
 
         # Runs when adding a new database
         def on_adding_new_database():
@@ -111,7 +79,7 @@ class DatabaseWindow:
             combo_options.insert(0, "Add new database")
 
             if (new_db_name in combo_options):
-                dpg.set_value("db_status_text", "Database already exists. Enter a different name.")
+                dpg.set_value("db_name_text", "Database already exists. Enter a different name.")
                 return
 
             # Add new name to databases
@@ -122,16 +90,53 @@ class DatabaseWindow:
             # Updates combo with new item
             dpg.configure_item("db_combo", items = combo_options)
             dpg.set_value("db_combo", new_db_name)
-            parse_combo()
+            parse_combo() 
 
 
         # Loads the UI for modifying databases
         def load_db_editor_ui():
-            pass
+
+            # Adds UI Buttons
+            path_text = dpg.add_text(default_value = "Enter a database path below: ", tag = "db_path_text", parent = "db_window")
+            path_input_text = dpg.add_input_text(tag = "db_path_input", parent = "db_window")
+            path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text, path_text], before = "db_reindex_button", parent = "db_window")
+
+            dpg.set_value(path_input_text, self.dbh.get_database_by_name(self.combo_value).get_database_path())
+            
 
         # Unloads the UI for modifying databases
         def unload_db_editor_ui():
-            pass
+            unloaded_items = ["db_path_text", "db_path_input", "db_path_submit_button"]
+            for item in unloaded_items:
+                try:
+                    dpg.delete_item(item)
+                except:
+                    pass
+
+        # Process database path submission
+        def process_db_submission(sender, app_data, user_data):
+
+            input_text = user_data[0]
+            text = user_data[1]
+
+            # Attempts to read any existing JSON files
+            db_name = self.combo_value
+            db_path = dpg.get_value(input_text)
+            result = self.dbh.on_new_database_submission(db_name, db_path)
+
+            # Read Success
+            if (result == 0):
+                dpg.set_value(text, "Database JSON file found. Loaded sucessfully.")
+
+            # Index Success
+            elif (result == 1):
+                dpg.set_value(text, "Database Initialization Successful")
+
+            # Failure
+            else:
+                dpg.set_value(text, "ERROR [1]: Path does not exist.")
+
+        
 
     
         # Starting window
@@ -147,8 +152,7 @@ class DatabaseWindow:
             # Start on the database creator
             load_db_creator_ui()
 
-            # reindex_button = dpg.add_button(label = "Re-index Database", tag = "db_reindex_button", callback = reindex_db, user_data = text, show = False)
-            # path_submit_button = dpg.add_button(label = "Submit", tag = "db_path_submit_button", callback = process_db_submission, user_data = [input_text, text, reindex_button], before = "db_reindex_button")
+            
             
 
     

@@ -31,7 +31,7 @@ class Database:
         if not (os.path.exists(db_path)):
             return 1
 
-        # By default, uses the databae path stored in memory
+        # By default, uses the database path stored in memory
         if (db_path == None):
             db_path = self.metadata["database_path"]
 
@@ -110,6 +110,8 @@ class Database:
         dt = datetime.datetime.now()
         self.metadata["last_time_indexed"] = dt.timestamp()
         self.data = db_entries
+
+        self.save_db_to_json()
         return 0
 
 
@@ -123,6 +125,7 @@ class Database:
 
             json.dump(temp, f, indent = 2)
 
+
     # Reads stored data from database path (using default json name)
     # Returns 0 if successful, 1 if exists but unsuccessful, and 2 if it the file does not exist
     def read_db_from_db_path(self, db_path):
@@ -132,16 +135,49 @@ class Database:
             return 2
 
         try:
-            print(os.path.join(db_path, self.config["default_json_name"]))
             with open(os.path.join(db_path, self.config["default_json_name"]), "r") as f:
                 json_data = json.load(f)
 
-                print("flag1")
                 self.metadata = json_data["db_metadata"]
                 self.data = json_data["db_data"]
-                print("flag2")
 
             return 0
 
         except:
             return 1
+
+    # Reads stored data from a json path
+    # Returns 0 if successful, 1 if exists but unsuccessful, and 2 if it the file does not exist
+    def read_db_from_json_path(self, json_path):
+    
+        # Checks that the file exists
+        if not (os.path.isfile(json_path)):
+            return 2
+
+        try:
+            with open(json_path, "r") as f:
+                json_data = json.load(f)
+
+                self.metadata = json_data["db_metadata"]
+                self.data = json_data["db_data"]
+
+            return 0
+
+        except:
+            return 1
+
+
+
+    # -----------------------
+    def get_name(self):
+        return self.metadata["database_name"]
+
+    def get_database_path(self):
+        return self.metadata["database_path"]
+
+    def get_json_path(self):
+        return self.metadata["json_path"]
+
+
+    def set_name(self, name):
+        self.metadata["database_name"] = name

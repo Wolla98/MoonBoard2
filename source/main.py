@@ -13,7 +13,7 @@ def boot():
     # Windows
     database_handler = DatabaseHandler()
     dbw = DatabaseWindow(database_handler)
-    vww = ViewerWindow()
+    vww = ViewerWindow(database_handler)
 
     # Create viewport
     dpg.create_context()
@@ -23,11 +23,11 @@ def boot():
 
     # Test
     dbw.create_window()
-    # vww.create_window()
+    vww.create_window()
 
 
     # Run
-    dpg.show_item_registry()
+    # dpg.show_item_registry()
     
     dpg.setup_dearpygui()
     dpg.show_viewport()
