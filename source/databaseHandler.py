@@ -24,15 +24,18 @@ class DatabaseHandler:
     
     # Reads JSON file to get information about databases
     def read_dbh_json(self):
-        with open(os.path.join(self.config["json_path"]), "r") as f:
-            json_data = json.load(f)
 
-            for db_entry in json_data:
-                db = Database()
-                db.set_name(db_entry["name"])
-                db.read_db_from_json_path(db_entry["json_path"])
+        # Creates an empty json if it doesn't exist
+        if (os.path.exists(self.config["json_path"])):
+            with open(os.path.join(self.config["json_path"]), "r") as f:
+                json_data = json.load(f)
 
-                self.databases.append(db)
+                for db_entry in json_data:
+                    db = Database()
+                    db.set_name(db_entry["name"])
+                    db.read_db_from_json_path(db_entry["json_path"])
+
+                    self.databases.append(db)
 
 
     # Handles new database submission
