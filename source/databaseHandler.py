@@ -12,7 +12,8 @@ class DatabaseHandler:
 
         # Config
         self.config = {
-            "json_path": ".\data\db_info.json"
+            "json_path": ".\\data\\db_info.json",
+            "data_folder": ".\\data"
         }
 
         # Data
@@ -79,6 +80,7 @@ class DatabaseHandler:
             data.append(db_info)
 
         # Write to JSON
+        os.makedirs(self.config["data_folder"], exist_ok = True)
         with open(self.config["json_path"], "w") as f:
             json.dump(data, f, indent = 2)
 
