@@ -90,12 +90,8 @@ class DatabaseWindow:
             # Adds UI Buttons
             path_text = dpg.add_text(default_value = "Enter a database path below: ", tag = "db_path_text", parent = "db_window")
             path_input_text = dpg.add_input_text(tag = "db_path_input", parent = "db_window")
-<<<<<<< HEAD
             path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text, path_text], before = "db_reindex_button", parent = "db_window")
             force_reindex_button = dpg.add_button(label = "Force Re-Index Database", tag = "db_reindex_button", callback = on_reindex, user_data = [path_input_text, path_text], parent = "db_window")
-=======
-            path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text], before = "db_reindex_button", parent = "db_window")
->>>>>>> b8ffe9f667a9458d0fd66f83e5c76701fe23e41b
 
             dpg.set_value(path_input_text, self.dbh.get_database_by_name(self.combo_value).get_database_path())
             
@@ -125,11 +121,7 @@ class DatabaseWindow:
 
             # Index Success
             elif (result == 1):
-<<<<<<< HEAD
-                dpg.set_value(text, "Database initialization successful.")
-=======
                 dpg.set_value("db_path_text", "Database Initialization Successful")
->>>>>>> b8ffe9f667a9458d0fd66f83e5c76701fe23e41b
 
             # Failure
             else:
