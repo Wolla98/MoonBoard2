@@ -31,14 +31,20 @@ class DatabaseWindow:
             if (combo_value == self.combo_value):
                 return
 
+            # Unloads current UI
+            if (self.combo_value == "Add new database"):
+                unload_db_creator_ui()
+
+            else:
+                unload_db_editor_ui()
+
+            # Loads new UI
             if (combo_value == "Add new database"):
                 self.combo_value = combo_value
-                unload_db_editor_ui()
                 load_db_creator_ui()
 
             else:
                 self.combo_value = combo_value
-                unload_db_creator_ui()
                 load_db_editor_ui()
 
         # Loads the UI for creating new databases
@@ -84,8 +90,12 @@ class DatabaseWindow:
             # Adds UI Buttons
             path_text = dpg.add_text(default_value = "Enter a database path below: ", tag = "db_path_text", parent = "db_window")
             path_input_text = dpg.add_input_text(tag = "db_path_input", parent = "db_window")
+<<<<<<< HEAD
             path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text, path_text], before = "db_reindex_button", parent = "db_window")
             force_reindex_button = dpg.add_button(label = "Force Re-Index Database", tag = "db_reindex_button", callback = on_reindex, user_data = [path_input_text, path_text], parent = "db_window")
+=======
+            path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text], before = "db_reindex_button", parent = "db_window")
+>>>>>>> b8ffe9f667a9458d0fd66f83e5c76701fe23e41b
 
             dpg.set_value(path_input_text, self.dbh.get_database_by_name(self.combo_value).get_database_path())
             
@@ -103,7 +113,6 @@ class DatabaseWindow:
         def process_db_submission(sender, app_data, user_data):
 
             input_text = user_data[0]
-            text = user_data[1]
 
             # Attempts to read any existing JSON files
             db_name = self.combo_value
@@ -112,15 +121,19 @@ class DatabaseWindow:
 
             # Read Success
             if (result == 0):
-                dpg.set_value(text, "Database JSON file found. Loaded sucessfully.")
+                dpg.set_value("db_path_text", "Database JSON file found. Loaded sucessfully.")
 
             # Index Success
             elif (result == 1):
+<<<<<<< HEAD
                 dpg.set_value(text, "Database initialization successful.")
+=======
+                dpg.set_value("db_path_text", "Database Initialization Successful")
+>>>>>>> b8ffe9f667a9458d0fd66f83e5c76701fe23e41b
 
             # Failure
             else:
-                dpg.set_value(text, "ERROR [1]: Path does not exist.")
+                dpg.set_value("db_path_text", "ERROR [1]: Path does not exist.")
 
         # Runs when re-indexing a database
         def on_reindex(sender, app_data, user_data):
