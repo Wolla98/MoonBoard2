@@ -20,7 +20,7 @@ class DatabaseHandler:
 
         # Reads JSON to populate database information
         self.read_dbh_json()
-        
+
     
     # Reads JSON file to get information about databases
     def read_dbh_json(self):
@@ -60,6 +60,16 @@ class DatabaseHandler:
             # Failure
             else:
                 return 2
+
+    # Handles re-indexing a database
+    def reindex_database(self, db_name, db_path):
+        db = self.get_database_by_name(db_name)
+        result = db.db_index_audio(db_path)
+        if (result == 0):
+            return 0
+        
+        else:
+            return 2
 
     # Saves database information to a local json
     def save_database_info(self):
@@ -104,3 +114,15 @@ class DatabaseHandler:
         for db in self.databases:
             if db.get_name() == name:
                 return db
+
+
+    # Initiates a search of each database and returns the results
+    def search_dbs(self, tags):
+        results = []
+        for db in self.databases:
+            db_search_results = db.search_db(tags)
+
+            for search_result in db_search_results:
+                results.append(search_result)
+
+        return results

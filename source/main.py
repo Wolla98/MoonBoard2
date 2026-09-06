@@ -27,7 +27,7 @@ def boot():
 
 
     # Run
-    # dpg.show_item_registry()
+    dpg.show_item_registry()
     
     dpg.setup_dearpygui()
     dpg.show_viewport()

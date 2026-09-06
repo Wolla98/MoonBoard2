@@ -3,6 +3,7 @@
 import os
 import json
 import datetime
+from PIL import ImageTk, Image
 
 class Database:
 
@@ -19,6 +20,7 @@ class Database:
             "database_name": "",
             "database_path": "",
             "json_path": "",
+            "thumbnail_path": "",
             "last_time_indexed": -1,
         }
         self.data = {}
@@ -51,6 +53,10 @@ class Database:
 
             # Ignores files
             if (os.path.isfile(folder_path)):
+                continue
+
+            # Ignores thubmnails
+            if (folder == "thumbnails"):
                 continue
 
             files = os.listdir(folder_path)
@@ -106,6 +112,7 @@ class Database:
         # Saves data to memory
         self.metadata["database_path"] = db_path
         self.metadata["json_path"] = os.path.join(db_path, self.config["default_json_name"])
+        self.metadata["thumbnail_path"] = os.path.join(db_path, "thumbnails")
 
         dt = datetime.datetime.now()
         self.metadata["last_time_indexed"] = dt.timestamp()
@@ -113,7 +120,6 @@ class Database:
 
         self.save_db_to_json()
         return 0
-
 
     # Saves stored data to JSON
     def save_db_to_json(self):
@@ -167,6 +173,82 @@ class Database:
             return 1
 
 
+    # Searches the database for all entries that match a specific search criteria
+    # Right now, only searches using tags and name
+
+    # Searches the following criteria:
+    # In album information: album name, voice artist, cover artist, circle
+    # In song information, song name, custom special tags, custom tags, and user notes
+    def search_db(self, tags):
+        return_list = []
+        thumbnail_created = False
+
+        for entry in self.data:
+
+            accept_flag = True
+            for tag in tags:
+
+                # Checks album information first
+                if (tag in entry["album_name"]) or (tag in entry["voice_artist"]) or (tag in entry["cover_artist"]) or (tag in entry["circle"]):
+                    continue
+
+                # Checks each song
+                song_flag = False
+                for song in entry["songs"]:
+
+                    if (tag in song["song_name"]) or (tag in song["user_notes"]):
+                        song_flag = True
+
+                    for custom_special_tag in song["custom_special_tags"]:
+                        if tag in custom_special_tag:
+                            song_flag = True
+
+                    for custom_tag in song["custom_tags"]:
+                        if tag in custom_tag:
+                            song_flag = True
+
+                if (song_flag):
+                    continue
+
+                # If no conditions were passed, then fails the criteria
+                accept_flag = False
+                continue
+
+            # If the entry passes all criteria, then accepts it
+            if (accept_flag):
+
+                # Checks that each result has a thumbnail before accepting
+                entry_thumbnail_path = entry["thumbnail_path"]
+    
+                # Creates a thumbnail if it does not already exist
+                if not (os.path.exists(entry_thumbnail_path)):
+                    os.makedirs(os.path.join(self.metadata["thumbnail_path"]), exist_ok = True)
+    
+                    # Shrinks cover image to thumbnail path
+                    new_thumbnail_path = os.path.join(self.metadata["thumbnail_path"], entry["album_name"] + "_thumbnail.png")
+
+                    try:
+                        cover_image = Image.open(entry["cover_image_path"])
+                        cover_image = cover_image.resize((150, 150))
+                        cover_image.save(new_thumbnail_path)
+
+                        entry["thumbnail_path"] = new_thumbnail_path
+                        thumbnail_created = True
+                        print("Thumbnail image creation succeeded for: " + str(entry["album_name"]))
+
+                    except:
+                        print("Thumbnail image creation failed for: " + str(entry["album_name"]))
+                        return_list.append(entry)
+                        continue
+
+            return_list.append(entry)
+
+        # If any thumbnails were created, saves changes to the JSON file
+        self.save_db_to_json()
+
+        return return_list
+
+        
 
     # -----------------------
     def get_name(self):

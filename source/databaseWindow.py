@@ -23,20 +23,6 @@ class DatabaseWindow:
     # Creates the database window
     def create_window(self):
 
-        # # Re-indexes database
-        # def reindex_db(sender, app_data, user_data):
-        #     text = user_data
-
-        #     result = self.db_data.db_index_audio()
-            
-        #     if (result == 0):
-        #         dpg.set_value(text, "Database Initialization Successful")
-        #         dpg.show_item(reindex_button)
-                
-        #     elif (result == 1):
-        #         dpg.set_value(text, "ERROR [1]: Path does not exist.")
-        
-
         # Parses the combo selection to pick which UI is used
         def parse_combo():
             combo_value = dpg.get_value("db_combo")
@@ -92,7 +78,6 @@ class DatabaseWindow:
             dpg.set_value("db_combo", new_db_name)
             parse_combo() 
 
-
         # Loads the UI for modifying databases
         def load_db_editor_ui():
 
@@ -100,13 +85,14 @@ class DatabaseWindow:
             path_text = dpg.add_text(default_value = "Enter a database path below: ", tag = "db_path_text", parent = "db_window")
             path_input_text = dpg.add_input_text(tag = "db_path_input", parent = "db_window")
             path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text, path_text], before = "db_reindex_button", parent = "db_window")
+            force_reindex_button = dpg.add_button(label = "Force Re-Index Database", tag = "db_reindex_button", callback = on_reindex, user_data = [path_input_text, path_text], parent = "db_window")
 
             dpg.set_value(path_input_text, self.dbh.get_database_by_name(self.combo_value).get_database_path())
             
 
         # Unloads the UI for modifying databases
         def unload_db_editor_ui():
-            unloaded_items = ["db_path_text", "db_path_input", "db_path_submit_button"]
+            unloaded_items = ["db_path_text", "db_path_input", "db_path_submit_button", "db_reindex_button"]
             for item in unloaded_items:
                 try:
                     dpg.delete_item(item)
@@ -130,11 +116,28 @@ class DatabaseWindow:
 
             # Index Success
             elif (result == 1):
-                dpg.set_value(text, "Database Initialization Successful")
+                dpg.set_value(text, "Database initialization successful.")
 
             # Failure
             else:
                 dpg.set_value(text, "ERROR [1]: Path does not exist.")
+
+        # Runs when re-indexing a database
+        def on_reindex(sender, app_data, user_data):
+
+            input_text = user_data[0]
+            text = user_data[1]
+
+            # Attempts re-index
+            db_name = self.combo_value
+            db_path = dpg.get_value(input_text)
+            result = self.dbh.reindex_database(db_name, db_path)
+
+            if (result == 0):
+                dpg.set_value(text, "Database re-index successful.")
+
+            elif (result == 2):
+                dpg.set_value(text, "Failure during database re-indexing.")
 
         
 
