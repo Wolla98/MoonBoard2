@@ -241,10 +241,11 @@ class Database:
                         return_list.append(entry)
                         continue
 
-            return_list.append(entry)
+                return_list.append(entry)
 
         # If any thumbnails were created, saves changes to the JSON file
-        self.save_db_to_json()
+        if (thumbnail_created):
+            self.save_db_to_json()
 
         return return_list
 
