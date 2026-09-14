@@ -72,6 +72,7 @@ class Database:
                 "album_path": folder_path,
                 "thumbnail_path": "",
                 "cover_image_path": "",
+                "album_tags": [],
                 "songs": []
             }
 

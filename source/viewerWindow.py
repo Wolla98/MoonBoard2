@@ -6,6 +6,7 @@ import shutil
 import json
 import math
 from viewer import Viewer
+from infoWindow import InfoWindow
 
 class ViewerWindow:
 
@@ -37,6 +38,9 @@ class ViewerWindow:
             entry = user_data
             print("You clicked a button!")
             print(entry)
+
+            infoWindow = InfoWindow(entry)
+            infoWindow.create_window()
 
         # Displays the results of a query
         def display_query():
@@ -95,7 +99,7 @@ class ViewerWindow:
 
     
         # Starting window
-        with dpg.window(label = "Viewer Window", width = 1200, height = 900, pos = (800, 0), tag = "vw_window"):
+        with dpg.window(label = "Viewer Window", width = 1200, height = 900, pos = (0, 0), tag = "vw_window"):
 
             with dpg.child_window(width = 1025, height = 800, menubar = True, resizable_x = True):
 

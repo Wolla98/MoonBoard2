@@ -148,7 +148,7 @@ class DatabaseWindow:
 
     
         # Starting window
-        with dpg.window(label = "Database Window", width = 800, height = 600, pos = (0, 0), tag = "db_window"):
+        with dpg.window(label = "Database Window", width = 800, height = 600, pos = (1200, 0), tag = "db_window"):
 
             # Database Picker
             combo_options = self.dbh.get_database_names()
