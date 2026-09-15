@@ -20,6 +20,7 @@ class ViewerWindow:
 
         self.viewer = Viewer(databaseHandler)
 
+        self.query_tags = []
         self.query_results = None
         self.viewer_page = 0
         self.viewer_page_start = 0
@@ -36,8 +37,6 @@ class ViewerWindow:
         def on_click_query_result_button(sender, app_data, user_data):
 
             entry = user_data
-            print("You clicked a button!")
-            print(entry)
 
             infoWindow = InfoWindow(entry)
             infoWindow.create_window()
@@ -85,21 +84,40 @@ class ViewerWindow:
         def query_databases():
 
             # Gets query results
-            if (self.test % 2 == 0):
-                results = self.viewer.search_dbs(["RJ014"])
-                self.test += 1
-
-            else:
-                results = self.viewer.search_dbs(["RJ"])
-                self.test += 1
-
+            results = self.viewer.search_dbs(self.query_tags)
             self.query_results = results
             print("Query results completed. Number of results: " + str(len(results)))
             display_query()
 
+        # Adds a tag to the query
+        def add_tag_to_query():
+            query_tag = dpg.get_value("input_tag_text")
+
+            if not (query_tag in self.query_tags):
+                self.query_tags.append(query_tag)
+                dpg.add_button(label = query_tag, parent = "tag_list", tag = query_tag + "_button", callback = remove_tag_from_query, user_data = [query_tag + "_button", query_tag])
+
+        # Removes a tag from query
+        def remove_tag_from_query(sender, app_data, user_data):
+            button_tag = user_data[0]
+            query_tag = user_data[1]
+
+            dpg.delete_item(button_tag)
+            self.query_tags.remove(query_tag)
+
+        # Removes all tags from the query
+        def remove_all_tags_from_query():
+            for query_tag in self.query_tags:
+                try:
+                    dpg.delete_item(query_tag + "_button")
+                except:
+                    pass
+
+            self.query_tags = []
+
     
         # Starting window
-        with dpg.window(label = "Viewer Window", width = 1200, height = 900, pos = (0, 0), tag = "vw_window"):
+        with dpg.window(label = "Viewer Window", width = 1050, height = 900, pos = (0, 0), tag = "vw_window"):
 
             with dpg.child_window(width = 1025, height = 800, menubar = True, resizable_x = True):
 
@@ -110,10 +128,16 @@ class ViewerWindow:
                 # Tag Filters
                 with dpg.tree_node(label = "Tags"):
                     with dpg.child_window(autosize_x = True, height = 300):
-                        with dpg.group(horizontal=True):
-                            dpg.add_button(label = "Tag 1", width = 75, height = 75)
-                            dpg.add_button(label = "Tag 2", width = 75, height = 75)
-                            dpg.add_button(label = "Tag 3", width = 75, height = 75)
+
+                        # Submit new tags
+                        with dpg.group(horizontal = True):
+                            dpg.add_input_text(hint = "Input Tag Here", tag = "input_tag_text")
+                            dpg.add_button(label = "Submit Tag", callback = add_tag_to_query)
+                            dpg.add_button(label = "Clear All Tags", callback = remove_all_tags_from_query)
+
+                        # Shows tags
+                        with dpg.group(horizontal = False, tag = "tag_list"):
+                            pass
 
                 # Advanced Filters
                 with dpg.tree_node(label = "Advanced"):

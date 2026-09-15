@@ -16,7 +16,7 @@ def boot():
     with dpg.font_registry():
         en_font_path = ".\\assets\\fonts\\NotoSerif.ttf"
         jp_font_path = ".\\assets\\fonts\\NotoSerifJP.ttf"
-        default_font = dpg.add_font(jp_font_path, size = 20, tag = "default_font")
+        default_font = dpg.add_font(jp_font_path, size = 30, tag = "default_font")
     dpg.bind_font(default_font)
 
     # Windows
