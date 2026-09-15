@@ -144,6 +144,8 @@ class DatabaseWindow:
             input_text = user_data[0]
 
             # Attempts to read any existing JSON files
+            dpg.set_value("db_path_text", "Database submission in progress. Please Wait...")
+
             db_name = self.combo_value
             db_path = dpg.get_value(input_text)
             result = self.dbh.on_new_database_submission(db_name, db_path)
@@ -167,6 +169,7 @@ class DatabaseWindow:
             text = user_data[1]
 
             # Attempts re-index
+            dpg.set_value(text, "Database re-indexing in progress, please wait...")
             db_name = self.combo_value
             db_path = dpg.get_value(input_text)
             result = self.dbh.reindex_database(db_name, db_path)

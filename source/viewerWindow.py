@@ -19,6 +19,7 @@ class ViewerWindow:
         }
 
         self.viewer = Viewer(databaseHandler)
+        self.dbh = databaseHandler
 
         self.query_tags = []
         self.query_results = None
@@ -38,8 +39,14 @@ class ViewerWindow:
 
             entry = user_data
 
-            infoWindow = InfoWindow(entry)
-            infoWindow.create_window()
+            # If the window already exists, then just shows that window
+            if (dpg.does_alias_exist("info_window_" + str(entry["id"]))):
+                dpg.show_item("info_window_" + str(entry["id"]))
+
+            # Creates a new window if it does not exist
+            else:
+                infoWindow = InfoWindow(entry, self.dbh)
+                infoWindow.create_window()
 
         # Displays the results of a query
         def display_query():
@@ -67,7 +74,6 @@ class ViewerWindow:
                     for col in range(10):
                         if (result_counter < len(self.query_results)):
                             entry = self.query_results[result_counter]
-
 
                             # Loads image to dpg, if it does not already exist
                             if not (dpg.does_alias_exist(entry["album_name"] + "_thumbnail_texture")):

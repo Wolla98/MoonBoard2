@@ -7,6 +7,8 @@ import datetime
 from PIL import ImageTk, Image
 from pydub import AudioSegment
 import numpy as np
+import math
+from tqdm import tqdm
 
 class AudioDatabase:
 
@@ -51,7 +53,7 @@ class AudioDatabase:
         folders.sort()
 
         # Albums
-        for folder in folders:
+        for folder in tqdm(folders):
             folder_path = os.path.join(db_path, folder)
 
             # Ignores files
@@ -67,6 +69,7 @@ class AudioDatabase:
 
             # Adds album information
             entry = {
+                "database_name": self.metadata["database_name"],
                 "id": counter,
                 "album_name": folder,
                 "voice_artist": "",
@@ -101,16 +104,6 @@ class AudioDatabase:
                         "user_notes": "",
                         "waveform_data": [],
                     }
-
-                    # Gets track length
-                    song_path = os.path.join(db_path, folder, file)
-                    audio_file = AudioSegment.from_file(song_path, format = ext)
-                    song_info["track_length"] = len(audio_file)
-
-                    # Gets waveform information
-                    # Stores info every second
-                    data = np.fromstring(audio_file.__data)
-                    
 
                     entry["songs"].append(song_info)
                     song_counter += 1
@@ -244,19 +237,27 @@ class AudioDatabase:
                     # Shrinks cover image to thumbnail path
                     new_thumbnail_path = os.path.join(self.metadata["thumbnail_path"], entry["album_name"] + "_thumbnail.png")
 
-                    try:
-                        cover_image = Image.open(entry["cover_image_path"])
-                        cover_image = cover_image.resize((150, 150))
-                        cover_image.save(new_thumbnail_path)
-
+                    if (os.path.exists(new_thumbnail_path)):
                         entry["thumbnail_path"] = new_thumbnail_path
-                        thumbnail_created = True
-                        print("Thumbnail image creation succeeded for: " + str(entry["album_name"]))
-
-                    except:
-                        print("Thumbnail image creation failed for: " + str(entry["album_name"]))
+                        print("Thubmnail found for: " + str(entry["album_name"]))
                         return_list.append(entry)
+                        thumbnail_created = True
                         continue
+
+                    else:
+                        try:
+                            cover_image = Image.open(entry["cover_image_path"])
+                            cover_image = cover_image.resize((150, 150))
+                            cover_image.save(new_thumbnail_path)
+
+                            entry["thumbnail_path"] = new_thumbnail_path
+                            thumbnail_created = True
+                            print("Thumbnail image creation succeeded for: " + str(entry["album_name"]))
+
+                        except:
+                            print("Thumbnail image creation failed for: " + str(entry["album_name"]))
+                            return_list.append(entry)
+                            continue
 
                 return_list.append(entry)
 
@@ -276,8 +277,27 @@ class AudioDatabase:
 
                 if not (custom_tag in self.metadata["custom_special_tags"]):
                     self.metadata["custom_special_tags"][custom_tag] = tag_type
-        
 
+    # Loads a song to get information about track length and to generate waveform
+    def load_track_info(self, album_id, song_id):
+
+        song_info = self.data[album_id]["songs"][song_id]
+
+        audio = AudioSegment.from_file(song_info["song_path"])
+        seconds = math.floor(audio.duration_seconds)
+
+        waveform_info = []
+        audio_slices = audio[::5000]
+    
+        for test in audio_slices:
+            loudness = test.rms
+            waveform_info.append(loudness)
+
+        song_info["track_length"] = math.floor(seconds)
+        song_info["waveform_data"] = waveform_info
+
+        self.save_db_to_json()
+        
 
     def get_name(self):
         return self.metadata["database_name"]

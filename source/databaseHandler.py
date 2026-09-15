@@ -146,3 +146,8 @@ class DatabaseHandler:
             db.add_custom_special_tag(custom_tags[i], default_values[i], tag_types[i])
 
         db.save_db_to_json()
+
+    # Loads a song to get track length / waveform information
+    def load_track_information(self, db_name, album_id, song_id):
+        db = self.get_database_by_name(db_name)
+        db.load_track_info(album_id, song_id)
