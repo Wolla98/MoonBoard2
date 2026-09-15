@@ -56,5 +56,5 @@ class InfoWindow:
                     # Adds buttons on the right
                     with dpg.child_window(width = 700, height = 800, menubar = True, resizable_x = True, horizontal_scrollbar = True):
                         for song in self.info["songs"]:
-                            button_text = song["song_name"] + "\n" + "Track Length: " + str(song["track_length"]) + "\n" + "Last Played: " + str(song["last_played"]) + "\n" + "Custom Tags: " + str(song["custom_tags"])
+                            button_text = song["song_name"] + "\n" + "Track Length: " + str(song["track_length"]) + "\n" + "Last Played: " + str(song["last_played"]) + "\n" + "Custom Tags: " + str(song["custom_special_tags"])
                             dpg.add_button(width = 0, label = button_text)

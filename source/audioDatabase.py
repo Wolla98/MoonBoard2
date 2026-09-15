@@ -1,18 +1,23 @@
 # Handles functions related to database and data handling
+# Specifically for audio
 
 import os
 import json
 import datetime
 from PIL import ImageTk, Image
+from pydub import AudioSegment
+import numpy as np
 
-class Database:
+class AudioDatabase:
 
     # Constructor
     def __init__(self):
 
         # Config
         self.config = {
-            "default_json_name": "db_archive.json"
+            "default_json_name": "db_archive.json",
+            "song_extension_whitelist": [".mp3", ".MP3", ".wav", ".flac"],
+            "cover_extension_whitelist": [".jpg", ".jpeg", ".webp", ".png"]
         }
 
         # Data
@@ -22,13 +27,14 @@ class Database:
             "json_path": "",
             "thumbnail_path": "",
             "last_time_indexed": -1,
+            "custom_special_tags": {}
         }
-        self.data = {}
+        self.data = []
 
     # Indexes a database to memory
     # Specifically for audio
     # Returns 0 if successful, 1 if the input path does not exist
-    def db_index_audio(self, db_path = None):
+    def index_db(self, db_path = None):
 
         if not (os.path.exists(db_path)):
             return 1
@@ -37,9 +43,6 @@ class Database:
         if (db_path == None):
             db_path = self.metadata["database_path"]
 
-        # File whitelist
-        song_ext_whitelist = [".mp3", ".MP3", ".wav", ".flac"]
-        cover_ext_whitelist = [".jpg", ".jpeg", ".webp", ".png"]
 
         db_entries = []
         counter = 0
@@ -83,7 +86,7 @@ class Database:
                 file_name, ext = os.path.splitext(file)
 
                 # Songs
-                if (ext in song_ext_whitelist):
+                if (ext in self.config["song_extension_whitelist"]):
                     song_info = {
                         "song_id": song_counter,
                         "song_name": file_name,
@@ -96,13 +99,24 @@ class Database:
                         "play_log": [],
                         "times_played": 0,
                         "user_notes": "",
+                        "waveform_data": [],
                     }
+
+                    # Gets track length
+                    song_path = os.path.join(db_path, folder, file)
+                    audio_file = AudioSegment.from_file(song_path, format = ext)
+                    song_info["track_length"] = len(audio_file)
+
+                    # Gets waveform information
+                    # Stores info every second
+                    data = np.fromstring(audio_file.__data)
+                    
 
                     entry["songs"].append(song_info)
                     song_counter += 1
 
                 # Cover Image
-                elif (ext in cover_ext_whitelist):
+                elif (ext in self.config["cover_extension_whitelist"]):
                     entry["cover_image_path"] = os.path.join(folder_path, file)
 
 
@@ -114,6 +128,7 @@ class Database:
         self.metadata["database_path"] = db_path
         self.metadata["json_path"] = os.path.join(db_path, self.config["default_json_name"])
         self.metadata["thumbnail_path"] = os.path.join(db_path, "thumbnails")
+        self.metadata["custom_special_tags"] = {}
 
         dt = datetime.datetime.now()
         self.metadata["last_time_indexed"] = dt.timestamp()
@@ -121,6 +136,7 @@ class Database:
 
         self.save_db_to_json()
         return 0
+    
 
     # Saves stored data to JSON
     def save_db_to_json(self):
@@ -250,9 +266,19 @@ class Database:
 
         return return_list
 
+
+    # Adds a custom special tag to the database
+    def add_custom_special_tag(self, custom_tag, default_value, tag_type):
+        for album in self.data:
+            for song in album["songs"]:
+                if not (custom_tag in song["custom_special_tags"].keys()):
+                    song["custom_special_tags"][custom_tag] = default_value
+
+                if not (custom_tag in self.metadata["custom_special_tags"]):
+                    self.metadata["custom_special_tags"][custom_tag] = tag_type
         
 
-    # -----------------------
+
     def get_name(self):
         return self.metadata["database_name"]
 
@@ -261,6 +287,9 @@ class Database:
 
     def get_json_path(self):
         return self.metadata["json_path"]
+
+    def get_custom_special_tags(self):
+        return self.metadata["custom_special_tags"]
 
 
     def set_name(self, name):

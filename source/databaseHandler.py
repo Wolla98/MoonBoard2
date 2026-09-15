@@ -3,7 +3,7 @@
 import os
 import json
 import datetime
-from database import Database
+from audioDatabase import AudioDatabase
 
 class DatabaseHandler:
 
@@ -22,6 +22,9 @@ class DatabaseHandler:
         # Reads JSON to populate database information
         self.read_dbh_json()
 
+    # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Database Handler
+    # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     # Reads JSON file to get information about databases
     def read_dbh_json(self):
@@ -32,7 +35,7 @@ class DatabaseHandler:
                 json_data = json.load(f)
 
                 for db_entry in json_data:
-                    db = Database()
+                    db = AudioDatabase()
                     db.set_name(db_entry["name"])
                     db.read_db_from_json_path(db_entry["json_path"])
 
@@ -53,7 +56,7 @@ class DatabaseHandler:
 
         # Read failure, attempts to index the database
         elif (result1 == 1):
-            result2 = database.db_index_audio(db_path)
+            result2 = database.index_db(db_path)
 
             # Success
             if (result2 == 0):
@@ -64,16 +67,6 @@ class DatabaseHandler:
             # Failure
             else:
                 return 2
-
-    # Handles re-indexing a database
-    def reindex_database(self, db_name, db_path):
-        db = self.get_database_by_name(db_name)
-        result = db.db_index_audio(db_path)
-        if (result == 0):
-            return 0
-        
-        else:
-            return 2
 
     # Saves database information to a local json
     def save_database_info(self):
@@ -94,15 +87,9 @@ class DatabaseHandler:
         with open(self.config["json_path"], "w") as f:
             json.dump(data, f, indent = 2)
 
-
-    # Creates a new database with a given name
-    def create_database(self, name):
-        new_database = Database()
-        new_database.metadata["database_name"] = name
-
-        self.databases.append(new_database)
-        self.save_database_info()
-        return new_database
+    # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Database Operations
+    # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
     # Returns the list of database names
@@ -131,3 +118,31 @@ class DatabaseHandler:
                 results.append(search_result)
 
         return results
+
+    # Creates a new database with a given name
+    def create_database(self, name):
+        new_database = AudioDatabase()
+        new_database.metadata["database_name"] = name
+
+        self.databases.append(new_database)
+        self.save_database_info()
+        return new_database
+
+    # Handles re-indexing a database
+    def reindex_database(self, db_name, db_path):
+        db = self.get_database_by_name(db_name)
+        result = db.index_db(db_path)
+        if (result == 0):
+            return 0
+        
+        else:
+            return 2
+
+    # Adds a custom tag to a database
+    def add_custom_tag_to_database(self, db_name, custom_tags, default_values, tag_types):
+        db = self.get_database_by_name(db_name)
+
+        for i in range(len(custom_tags)):
+            db.add_custom_special_tag(custom_tags[i], default_values[i], tag_types[i])
+
+        db.save_db_to_json()
