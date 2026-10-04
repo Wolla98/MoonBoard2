@@ -2,6 +2,7 @@ import dearpygui.dearpygui as dpg
 from databaseWindow import DatabaseWindow
 from viewerWindow import ViewerWindow
 from databaseHandler import DatabaseHandler
+from appConfig import AppConfig
 import os
 
 def save_callback():
@@ -19,14 +20,17 @@ def boot():
         default_font = dpg.add_font(jp_font_path, size = 30, tag = "default_font")
     dpg.bind_font(default_font)
 
-    # Windows
-    database_handler = DatabaseHandler()
-    dbw = DatabaseWindow(database_handler)
-    vww = ViewerWindow(database_handler)
+    # Config
+    config = AppConfig(1920, 1080, 20, 5, 5, 5)
+    # config = AppConfig(2560, 1440, 20, 5, 5, 5)
 
     # Create viewport
-    dpg.create_viewport(title='Custom Title', width = 1920, height = 1080)
+    dpg.create_viewport(title='Custom Title', width = config.get_width(), height = config.get_height())
 
+    # Window Objects
+    database_handler = DatabaseHandler()
+    dbw = DatabaseWindow(database_handler, config)
+    vww = ViewerWindow(database_handler, config)
 
     # Create windows
     dbw.create_window()

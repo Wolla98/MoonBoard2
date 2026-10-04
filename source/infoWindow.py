@@ -77,7 +77,7 @@ class InfoWindow:
                     dpg.add_button(label = "Get Track Length and Generate Waveform", width = 625, callback = load_song_for_info, user_data = song_info)
 
                     if len(song_info["waveform_data"]) > 0:
-                        with dpg.child_window(tag = self.window_name + "_waveform_window", width = 650, height = 200, border = True, horizontal_scrollbar = True):
+                        with dpg.child_window(tag = self.window_name + "_waveform_window", width = 650, height = 300, border = True, horizontal_scrollbar = True):
 
                             BARS = 100
                             BAR_HEIGHT = 100

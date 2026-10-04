@@ -1,5 +1,6 @@
 # Handles the database window
 
+from appConfig import AppConfig
 import dearpygui.dearpygui as dpg
 import os
 import shutil
@@ -8,15 +9,18 @@ import json
 class DatabaseWindow:
 
     # Constructor
-    def __init__(self, databaseHandler):
+    def __init__(self, databaseHandler, config):
 
-        # Config
-        self.app_config = {
-            
-        }
-
+      
 
         self.dbh = databaseHandler
+        self.config = config
+
+        self.window_width = 0
+        self.window_height = 0
+        self.subwindow_width = 0
+        self.subwindow_height = 0
+
         self.combo_value = ""
         self.custom_tags = []
 
@@ -49,8 +53,8 @@ class DatabaseWindow:
         # Loads the UI for creating new databases
         def load_db_creator_ui():
             text = dpg.add_text(default_value = "Enter a name for a new database: ", tag = "db_name_text", parent = "db_window_ui")
-            input_text = dpg.add_input_text(hint = "Enter database name", tag = "db_name_input", parent = "db_window_ui", width = 700)
-            name_submit_button = dpg.add_button(label = "Add new database", tag = "db_name_submit_button", parent = "db_window_ui", callback = on_adding_new_database, user_data = [input_text])
+            input_text = dpg.add_input_text(hint = "Enter database name", tag = "db_name_input", parent = "db_window_ui", width = self.config.calc_iw(0.96, self.subwindow_width))
+            name_submit_button = dpg.add_button(label = "Add new database", tag = "db_name_submit_button", parent = "db_window_ui", callback = on_adding_new_database, user_data = [input_text], width = self.config.calc_iw(0.96, self.subwindow_width))
 
         # Runs when adding a new database
         def on_adding_new_database():
@@ -79,9 +83,9 @@ class DatabaseWindow:
 
             # Adds UI Buttons
             path_text = dpg.add_text(default_value = "Enter a database path below: ", tag = "db_path_text", parent = "db_window_ui")
-            path_input_text = dpg.add_input_text(tag = "db_path_input", parent = "db_window_ui", width = 700)
-            path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text, path_text], before = "db_reindex_button", parent = "db_window_ui", width = 500)
-            force_reindex_button = dpg.add_button(label = "Force Re-Index Database", tag = "db_reindex_button", callback = on_reindex, user_data = [path_input_text, path_text], parent = "db_window_ui", width = 500)
+            path_input_text = dpg.add_input_text(tag = "db_path_input", parent = "db_window_ui", width = self.config.calc_iw(0.96, self.subwindow_width))
+            path_submit_button = dpg.add_button(label = "Submit database path", tag = "db_path_submit_button", callback = process_db_submission, user_data = [path_input_text, path_text], before = "db_reindex_button", parent = "db_window_ui", width = self.config.calc_iw(0.96, self.subwindow_width))
+            force_reindex_button = dpg.add_button(label = "Force Re-Index Database", tag = "db_reindex_button", callback = on_reindex, user_data = [path_input_text, path_text], parent = "db_window_ui", width = self.config.calc_iw(0.96, self.subwindow_width))
 
             dpg.set_value(path_input_text, self.dbh.get_database_by_name(self.combo_value).get_database_path())
 
@@ -96,26 +100,26 @@ class DatabaseWindow:
             except:
                 pass
 
-            with dpg.tree_node(label = "Custom Tags", parent = "db_window_ui", tag = "custom_tag_ui_tree", default_open = True):
-                with dpg.child_window(width = 700):
-                    with dpg.table(header_row = False, resizable = False, hideable = False, reorderable = False, borders_outerV = True, borders_innerH = True, policy = dpg.mvTable_SizingStretchSame, tag = "custom_tag_menu"):
-                        dpg.add_table_column(label="temp1", init_width_or_weight = 400)
-                        dpg.add_table_column(label="temp2", init_width_or_weight = 200)
-                        dpg.add_table_column(label="temp2", init_width_or_weight = 100)
+            with dpg.child_window(label = "Custom Tags", parent = "db_window_ui", tag = "custom_tag_ui_tree", width = self.config.calc_iw(0.96, self.subwindow_width)):
+                dpg.add_text("Custom Tags:")
+                with dpg.table(header_row = False, resizable = False, hideable = False, reorderable = False, borders_outerV = True, borders_innerH = True, policy = dpg.mvTable_SizingStretchSame, tag = "custom_tag_menu"):
+                    dpg.add_table_column(label="temp1", init_width_or_weight = self.config.calc_iw(0.6, self.subwindow_width * 0.96))
+                    dpg.add_table_column(label="temp2", init_width_or_weight = self.config.calc_iw(0.2, self.subwindow_width * 0.96))
+                    dpg.add_table_column(label="temp2", init_width_or_weight = self.config.calc_iw(0.2, self.subwindow_width * 0.96))
 
-                        # Add custom tags to menu
-                        custom_tag_info = self.dbh.get_database_by_name(self.combo_value).get_custom_special_tags()
+                    # Add custom tags to menu
+                    custom_tag_info = self.dbh.get_database_by_name(self.combo_value).get_custom_special_tags()
 
-                        for custom_tag in custom_tag_info.keys():
-                            with dpg.table_row():
-                                dpg.add_text(custom_tag)                            # Tag Name
-                                dpg.add_text(custom_tag_info[custom_tag])           # Tag Type
-                                dpg.add_button(label = "Delete", width = 100)
-
+                    for custom_tag in custom_tag_info.keys():
                         with dpg.table_row():
-                            dpg.add_input_text(hint = "Custom Tag Name", tag = "custom_tag_input_text", width = 400)
-                            dpg.add_combo(items = ["Integer", "String"], tag = "custom_tag_input_combo", width = 200)
-                            dpg.add_button(label = "Add", tag = "custom_tag_add_button", callback = add_custom_tag, width = 100)
+                            dpg.add_text(custom_tag)                            # Tag Name
+                            dpg.add_text(custom_tag_info[custom_tag])           # Tag Type
+                            dpg.add_button(label = "Delete", width = self.config.calc_iw(0.2, self.subwindow_width * 0.96))
+
+                    with dpg.table_row():
+                        dpg.add_input_text(hint = "Custom Tag Name", tag = "custom_tag_input_text", width = self.config.calc_iw(0.6, self.subwindow_width * 0.96))
+                        dpg.add_combo(items = ["Integer", "String"], tag = "custom_tag_input_combo", width = self.config.calc_iw(0.2, self.subwindow_width * 0.96))
+                        dpg.add_button(label = "Add", tag = "custom_tag_add_button", callback = add_custom_tag, width = self.config.calc_iw(0.2, self.subwindow_width * 0.96))
 
         # Adds a custom tag to a database
         def add_custom_tag():
@@ -184,7 +188,10 @@ class DatabaseWindow:
 
     
         # Starting window
-        with dpg.window(label = "Database Window", width = 825, height = 600, pos = (1050, 0), tag = "db_window"):
+        self.window_width = self.config.calc_ww(0.3)
+        self.window_height = self.config.calc_wh(0.8)
+        window_position = ((self.config.get_width() * 0.7) - self.config.window_padding_horizontal, 0)
+        with dpg.window(label = "Database Window", width = self.window_width, height = self.window_height, pos = window_position, tag = "db_window"):
 
             # Database Picker
             combo_options = self.dbh.get_database_names()
@@ -194,7 +201,9 @@ class DatabaseWindow:
             self.combo_value = "Add new database"
 
             # Start on the database creator
-            with dpg.child_window(tag = "db_window_ui", width = 800, height = 500, menubar = False):
+            self.subwindow_width = self.config.calc_iw(0.96, self.window_width)
+            self.subwindow_height = self.config.calc_ih(0.88, self.window_height)
+            with dpg.child_window(tag = "db_window_ui", width = self.subwindow_width, height = self.subwindow_height, menubar = False, horizontal_scrollbar = True):
                 pass
 
             load_db_creator_ui()
